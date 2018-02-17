@@ -1,0 +1,297 @@
+#include <algorithm>
+#include <chrono>
+#include <deque>
+#include <fstream>
+#include <functional>
+#include <iterator>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <limits>
+#include <list>
+#include <random>
+#include <regex>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+#include <queue>
+#include <cmath>
+
+using i64 = long long;
+using u64 = unsigned long long;
+
+auto clk = std::chrono::high_resolution_clock();
+std::chrono::time_point<std::chrono::steady_clock> tp;
+
+class List
+{
+private:
+	using T = char;
+
+	struct Node
+	{
+		T value;
+		Node* prev;
+		Node* next;
+	};
+
+public:
+	using iterator = char*;
+
+	List() :
+		fst(nullptr)
+	{
+		lst = alloc();
+		mem.reserve(1000000);
+	}
+
+	template<typename TIterator>
+	List(TIterator begin, TIterator end) :
+		List()
+	{
+		for (begin; begin != end; ++begin)
+			push_back(*begin);
+	}
+
+	Node* alloc()
+	{
+		mem.push_back(Node());
+		return &mem.back();
+	}
+
+	void push_back(T item)
+	{
+		auto node = alloc();
+
+		if (lst->prev != nullptr)
+		{
+			lst->prev->next = node;
+		}
+
+		auto prev = lst->prev;
+		lst->prev = node;
+		node->prev = prev;
+	}
+
+	void erase(iterator pos)
+	{
+
+	}
+
+	size_t size() const
+	{
+		return size_;
+	}
+
+private:
+
+	Node* fst;
+	Node* lst;
+
+	size_t size_;
+	static std::vector<Node> mem;
+};
+
+List input;
+List::iterator root;
+
+bool reduce(List::iterator it)
+{
+	auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(clk.now() - tp).count();
+
+	if (diff > 800)
+	{
+		std::cout << "closed";
+		exit(0);
+	}
+
+	if (input.size() < 5) {
+		root = input.end();
+		return true;
+	}
+
+	auto next = [](List::iterator& it1) {
+		if (it1 != input.end())
+			++it1;
+
+		if (it1 == input.end())
+		{
+			it1 = input.begin();
+		}
+	};
+
+	auto prev = [](List::iterator& it2) {
+		if (it2 != input.begin())
+		{
+			--it2;
+			return true;
+		}
+
+		return false;
+	};
+
+	auto snd = it;
+
+	next(snd);
+
+	if (*it == *snd)
+	{
+		auto itClone = it;
+		bool cont = prev(itClone);	
+		
+		if (it == root)
+			root++;
+		input.erase(it);
+		if (snd == root)
+			root++;
+		input.erase(snd);
+
+		if (cont)
+		{
+			for (size_t i = 0; i < 4; ++i)
+			{
+				if (reduce( itClone))
+					break;
+
+				if (!prev(itClone))
+					break;
+			}
+
+		}
+
+		return true;
+	}
+	else
+	{
+		auto trd = snd;
+
+		next(trd);
+
+		if (*it == *trd)
+		{
+			next(trd);
+
+			if (*snd == *trd)
+			{
+				next(trd);
+
+				if (*it == *trd)
+				{
+			
+					auto itClone = it;
+
+					bool cont = prev(itClone);
+				
+					if (it == root)
+						root++;
+					input.erase(it);
+					if (trd == root)
+						root++;
+					input.erase(trd);
+											
+				
+					if (cont)
+					{
+						for (size_t i = 0; i < 4; ++i)
+						{
+							if (reduce( itClone))
+								break;
+
+							if (!prev(itClone))
+								break;
+						}
+					}
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+};
+
+void markoff()
+{
+	root = input.begin();
+	
+	while (root != input.end())
+	{
+		if (!reduce( root))
+	
+			++root;
+	}
+
+	
+}
+
+int main()
+{
+	using std::cin;
+	using std::cout;
+
+#ifdef HOME
+	std::ifstream in = std::ifstream("input.txt");
+#define cin in
+#endif
+	std::ios_base::sync_with_stdio(false);
+	
+	tp = clk.now();
+
+	//size_t len;
+	//cin >> len;
+	std::string path;
+	std::getline(cin, path); /*
+	while (true)
+	{
+		auto gen = std::mt19937(std::random_device()());
+
+		auto rnd = [&gen]() -> char {
+			static auto dist = std::uniform_int_distribution<int>('a', 'd');
+			return dist(gen);
+		};
+	
+		for (size_t i = 0; i < len; ++i)
+		{
+			path.append(std::string(1, rnd()));
+		}
+		
+		*/
+		input = List(path.cbegin(), path.cend());
+
+		if (path.size() % 2 == 0)
+		{
+			markoff();
+
+			std::set<std::string> available{
+				"aa", "bb", "cc",
+				"aaaa", "aabb", "baab", "bbaa", "abba",
+				"bbbb", "ccbb", "bccb", "bbcc", "cbbc",
+				"cccc", "aacc", "caac", "ccaa", "acca",
+			};
+
+			std::string temp(input.cbegin(), input.cend());
+
+			if ((input.size() == 0) || available.count(temp))
+				cout << "closed";
+			else
+				cout << "open";
+
+		}
+		else
+		{
+			cout << "open";
+		}
+//	}
+
+#ifdef HOME
+	system("pause");
+#endif
+
+	return 0;
+}

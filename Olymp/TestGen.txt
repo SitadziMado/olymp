@@ -1,0 +1,43 @@
+import random
+
+tests = []
+
+n, m = 1000, 10000
+
+print(n, m)
+
+edges = 0
+
+pairs = set()
+
+for i in range(2, 501):
+    print(1, i)
+    pairs.add((1, i))
+    edges += 1 
+    
+for i in range(501, 1001):
+    print(i - 500, i)
+    pairs.add((i - 500, i))
+    edges += 1 
+    
+edgesLeft = m + 1 - edges
+    
+while edgesLeft > 0:
+    a = random.randint(1, n)
+    b = random.randint(1, n)
+    
+    if a == b:
+        continue
+        
+    if a > b:
+        a, b = b, a
+        
+    pair = (a, b)
+    
+    if pair in pairs:
+        continue
+        
+    print(a, b)
+    
+    pairs.add(pair)
+    edgesLeft -= 1

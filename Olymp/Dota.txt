@@ -1,0 +1,236 @@
+
+struct Node
+{
+	Node()
+	{
+
+	}
+
+	Node(size_t sx_, size_t sy_, size_t fx_, size_t fy_) :
+		sx(sx_),
+		sy(sy_),
+		fx(fx_),
+		fy(fy_),
+		mx((sx_ + fx_) / 2),
+		my((sy_ + fy_) / 2),
+		ul(nullptr),
+		ur(nullptr),
+		ll(nullptr),
+		lr(nullptr)
+	{
+
+	}
+
+	void add(i64 x, i64 y)
+	{
+		++cnt;
+		
+		if (sx == fx && sy == fy)
+			return;
+
+		if (x <= mx && y <= my)
+			ul.reset(new Node(sx, sy, mx, my));
+		else if (x <= mx && y > my)
+			ul.reset(new Node(sx, my + 1, mx, fy));
+		else if (x > mx && y <= my)
+			ul.reset(new Node(mx + 1, sy, fx, my));
+	}
+
+	size_t sx, sy, fx, fy, mx, my;
+	size_t cnt;
+	std::unique_ptr<Node> ul;
+	std::unique_ptr<Node> ur;
+	std::unique_ptr<Node> ll;
+	std::unique_ptr<Node> lr;
+};
+
+class Tree
+{
+public:
+	Tree(
+		std::vector<std::pair<i64, i64>> restaurants,
+		i64 sx,
+		i64 sy,
+		i64 fx,
+		i64 fy
+	) :
+		root_(new Node(sx, sy, fx, fy))
+	{
+
+	}
+
+private:
+	std::unique_ptr<Node> root_;
+};
+
+
+
+#include <algorithm>
+#include <deque>
+#include <fstream>
+#include <functional>
+#include <iterator>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <limits>
+#include <list>
+#include <regex>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+#include <queue>
+#include <cmath>
+
+using i64 = long long;
+using u64 = unsigned long long;
+
+void markoff(std::list<char>& input)
+{
+	bool changes = false;
+
+	auto next = [&changes, &input](std::list<char>::iterator& it) {
+		++it;
+
+		if (it == input.end())
+		{
+			it = input.begin();
+		}
+
+		return changes;
+	};
+
+	auto fourLeft = [&changes, &input](std::list<char>::iterator& it) {
+		for (size_t i = 0; it != input.begin() && i < 4; ++i)
+			--it;
+	};
+
+	auto fst = input.begin();
+
+	while (input.size() >= 5 && fst != input.end())
+	{
+		auto snd = fst;
+		
+		next(snd);
+
+		if (*fst == *snd)
+		{
+			auto n = fst;
+			
+			++n;
+
+			if (n != input.end())
+				++n;
+
+			input.erase(fst);
+			input.erase(snd);
+			
+			fst = n;
+
+			fourLeft(fst);
+
+			changes = true;
+			continue;
+		}
+		else
+		{
+			auto trd = snd;
+			
+			next(trd);
+			
+			if (*fst == *trd)
+			{
+				next(trd);
+
+				if (*snd == *trd)
+				{
+					next(trd);
+
+					if (*fst == *trd)
+					{
+						auto n = fst;
+
+						++n;
+
+						input.erase(fst);
+						input.erase(trd);
+						fst = n;
+
+						fourLeft(fst);
+
+						changes = true;
+						continue;
+					}
+				}
+			}
+		}
+
+		++fst;
+	}
+
+	if (input.size() > 4 && changes)
+		markoff(input);
+}
+
+int main()
+{
+	using std::cin;
+	using std::cout;
+
+#ifdef HOME
+	std::ifstream in = std::ifstream("input.txt");
+#define cin in
+#endif
+	std::ios_base::sync_with_stdio(false);
+
+	std::string input;
+
+	std::getline(cin, input);
+
+	char p = input[0];
+
+	std::list<char> path(input.cbegin(), input.cend());
+
+	if (path.size() % 2 == 0)
+	{
+		markoff(path);
+
+		if (path.size() <= 4)
+		{
+			std::set<std::string> available{
+				"aa", "bb", "cc",
+				"aaaa", "aabb", "baab", "bbaa", "abba",
+				"bbbb", "ccbb", "bccb", "bbcc", "cbbc",
+				"cccc", "aacc", "caac", "ccaa", "acca",
+			};
+
+			std::string temp(path.cbegin(), path.cend());
+
+			if (available.count(temp))
+				cout << "closed";
+			else
+				cout << "open";
+		}
+		else
+		{
+			cout << "open";
+		}
+	}
+	else
+	{
+		cout << "open";
+	}
+
+#ifdef HOME
+	system("pause");
+#endif
+
+	return 0;
+}
+

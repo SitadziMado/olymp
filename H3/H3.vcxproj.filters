@@ -15,33 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Olymp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="IoHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tester.cpp">
+    <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Text.txt" />
-    <Text Include="TestGen.txt" />
-    <Text Include="Pairs.txt" />
-    <Text Include="Dota.txt" />
-    <Text Include="H.txt" />
-    <Text Include="input.txt" />
-    <Text Include="Swap.txt" />
-    <Text Include="Save.txt" />
-    <Text Include="Text1123123.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="IoHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tester.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <Text Include="..\Olymp\input.txt" />
   </ItemGroup>
 </Project>

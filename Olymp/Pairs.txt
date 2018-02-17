@@ -1,0 +1,187 @@
+#include <algorithm>
+#include <deque>
+#include <functional>
+#include <iterator>
+#include <iostream>
+#include <limits>
+#include <list>
+#include <cmath>
+#include <set>
+#include <string>
+#include <vector>
+
+typedef long long i64;
+typedef unsigned long long u64;
+using namespace std;
+
+typedef vector<vector<size_t> > Matrix;
+
+void dfs(const Matrix& matrix, vector<size_t>& depths, size_t current, size_t depth)
+{
+	depths[current] = depth;
+
+	if (depth <= 1)
+		for (
+			vector<size_t>::const_iterator it = matrix[current].begin();
+			it != matrix[current].end();
+			++it
+			)
+			if (depths[*it] > depth + 1)
+				dfs(matrix, depths, *it, depth + 1);
+}
+
+struct Kuhn
+{
+
+	Kuhn(Matrix& matrix_, size_t n) :
+		matrix(matrix_),
+		pairs(n, Empty),
+		used(n, false)
+	{}
+
+	bool operator()(size_t current)
+	{
+		if (used[current])
+			return false;
+
+		used[current] = true;
+
+		vector<size_t>& row = matrix[current];
+
+		for (size_t i = 0; i < row.size(); ++i)
+		{
+			size_t to = row[i];
+
+			if (pairs[to] == Empty || operator()(pairs[to]))
+			{
+				pairs[to] = current;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void clear()
+	{
+		for (size_t i = 0; i < used.size(); ++i)
+			used[i] = false;
+	}
+
+	vector<size_t> getPairs()
+	{
+		return pairs;
+	}
+
+	static size_t Empty;
+	Matrix& matrix;
+	vector<size_t> pairs;
+	vector<bool> used;
+};
+
+size_t Kuhn::Empty = numeric_limits<size_t>::max();
+
+int main()
+{
+	ios_base::sync_with_stdio(false);
+
+	size_t n, m;
+
+	cin >> n >> m;
+
+	Matrix matrix = Matrix(n, vector<size_t>());
+
+	// lap_po_3_304A
+
+	for (size_t i = 0; i < m; i++)
+	{
+		size_t u, v;
+		cin >> u >> v;
+
+		--u, --v;
+
+		matrix[u].push_back(v);
+		matrix[v].push_back(u);
+	}
+
+	set<size_t> full = set<size_t>();
+
+	for (size_t i = 0; i < n; ++i)
+		full.insert(i);
+
+	for (size_t i = 0; i < n; ++i)
+	{
+		vector<size_t> depths = vector<size_t>(n, std::numeric_limits<size_t>::max());
+
+		dfs(matrix, depths, i, 0);
+
+		if (!count(depths.begin(), depths.end(), std::numeric_limits<size_t>::max()))
+		{
+			set<size_t> children = set<size_t>(matrix[i].begin(), matrix[i].end());
+			set<size_t> notChildren;
+
+			set<size_t> first = children;
+			first.insert(i);
+
+			vector<size_t> diff;
+
+			set_difference(
+				full.begin(), full.end(),
+				first.begin(), first.end(),
+				back_inserter(diff)
+			);
+
+			notChildren = set<size_t>(diff.begin(), diff.end());
+
+			if (children.size() < notChildren.size())
+				continue;
+
+			Kuhn kuhn = Kuhn(matrix, n);
+
+			for (set<size_t>::const_iterator it = notChildren.begin();
+				it != notChildren.end();
+				++it)
+			{
+				kuhn(*it);
+				kuhn.clear();
+			}
+
+			vector<size_t> pairs = kuhn.getPairs();
+
+			for (size_t j = 0; j < pairs.size(); ++j)
+			{
+				if (notChildren.count(pairs[j]))
+					notChildren.erase(pairs[j]);
+			}
+
+			if (!notChildren.size())
+			{
+				cout << "Yes" << endl;
+
+				cout << i + 1 << " " << children.size() << endl;
+
+				for (size_t j = 0; j < pairs.size(); ++j)
+				{
+					if (pairs[j] != Kuhn::Empty)
+					{
+						cout << j + 1 << " " << pairs[j] + 1 << endl;
+						children.erase(j);
+					}
+				}
+
+				for (set<size_t>::const_iterator it = children.begin();
+					it != children.end();
+					++it)
+				{
+					cout << *it + 1 << " -1" << endl;
+				}
+
+				return 0;
+			}
+		}
+	}
+
+	cout << "No";
+
+	return 0;
+}
