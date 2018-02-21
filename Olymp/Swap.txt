@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <deque>
 #include <fstream>
@@ -23,6 +24,8 @@
 #include <vector>
 #include <queue>
 
+#include <thread>
+
 #include <clocale>
 #include <cmath>
 
@@ -33,81 +36,6 @@
 using i64 = long long;
 using u64 = unsigned long long;
 
-std::vector<i64> pows = {
-	0,
-	1,
-	3,
-	7,
-	15,
-	31,
-	63,
-	127,
-	255,
-	511,
-	1023,
-	2047,
-	4095,
-	8191,
-	16383,
-	32767,
-	65535,
-	131071,
-	262143,
-	524287,
-	1048575,
-	2097151,
-	4194303,
-	8388607,
-	16777215,
-	33554431,
-	67108863,
-	134217727,
-	268435455,
-	536870911,
-	1073741823,
-	2147483647,
-	4294967295,
-	8589934591,
-	17179869183,
-	34359738367,
-	68719476735,
-	137438953471,
-	274877906943,
-	549755813887,
-	1099511627775,
-	2199023255551,
-	4398046511103,
-	8796093022207,
-	17592186044415,
-	35184372088831,
-	70368744177663,
-	140737488355327,
-	281474976710655,
-	562949953421311,
-	1125899906842623,
-	2251799813685247,
-	4503599627370495,
-	9007199254740991,
-	18014398509481983,
-	36028797018963967,
-	72057594037927935,
-	144115188075855871,
-	288230376151711743,
-	576460752303423487,
-};
-
-struct Tuple
-{
-	i64 value;
-	i64 cost;
-	i64 count;
-};
-
-bool operator<(const Tuple& lhs, const Tuple& rhs)
-{
-	return (lhs.cost) < (rhs.cost);
-}
-
 void _main();
 
 int main(int argc, char **argv)
@@ -116,34 +44,181 @@ int main(int argc, char **argv)
 
 #ifdef HOME
 
-	/*std::setlocale(LC_ALL, "ru-RU");
+	std::setlocale(LC_ALL, "ru-RU");
 
-	Tester tester;
+	Tester tester(_main);
 
 	tester
-		.assertEq(
-			"2\n7\n42",
-			"3\n10",
-			_main
+		.eq(
+R"(5 3
+1 2 3 4 5)",
+R"(5
+1 2 3 4 5)"
 		)
-		.assertEq(
-			"1\n10",
-			"4",
-			_main
+		.eq(
+R"(5 42
+1 2 3 4 5)",
+R"(1
+5)"
 		)
-		.assertEq(
-		"1\n11",
-		"4",
-		_main
-	);*/
+		.eq(
+R"(5 3
+1 2 4 5 3)",
+R"(5
+1 2 3 4 5)"
+		)
+		.eq(
+R"(7 3
+1 2 3 4 5 5 4)",
+R"(6
+1 2 3 4 5 7)"
+		)
+		.eq(
+			R"(1 100 5)",
+			R"(1
+1)"
+		)
+		.eq(
+			R"(1 1 5)",
+			R"(1
+1)"
+		)
+		.eq(
+			R"(5 6
+5 5 5 5 5)",
+R"(5
+1 2 3 4 5)"
+)
+.eq(
+	R"(6 6
+5 5 5 5 5 5)",
+R"(6
+1 2 3 4 5 6)"
+)
+.eq(
+	R"(6 5
+5 5 5 8 6 7)",
+R"(6
+1 2 3 4 5 6)"
+)
+.eq(
+	R"(5 5
+5 5 5 6 7)",
+R"(5
+1 2 3 4 5)"
+)
+.eq(
+	R"(5 4
+1 2 3 5 7)",
+R"(5
+1 2 3 4 5)"
+)
+.eq(
+	R"(5 4
+3 3 3 5 7)",
+R"(5
+1 2 3 4 5)"
+)
+.eq(
+	R"(5 4
+6 5 5 5 7)",
+R"(5
+1 2 3 4 5)"
+).eq(
+	R"(5 4
+6 5 5 8 7)",
+R"(4
+1 2 3 5)"
+)
+		;
 
 #else
-	// _main();
+	_main();
 #endif // HOME
 
-	_main();
+	//_main();
 
 	return 0;
+}
+
+struct Pair
+{
+	i64 value;
+	size_t index;
+};
+
+bool operator<(const Pair& lhs, const Pair& rhs)
+{
+	return lhs.value < rhs.value;
+}
+
+std::vector<i64> count(std::vector<Pair>& input, std::vector<Pair>::const_iterator it)
+{
+	bool ok = true;
+	std::vector<i64> answers;
+
+	auto ri = it;
+	++ri;
+
+	auto last = it->value;
+
+	while (it->value == last)
+	{
+		answers.push_back(it->index);
+
+		if (it == input.cbegin())
+		{
+			ok = false; break;
+		}
+
+		--it;
+	}
+
+	while (ri != input.cend() && ri->value == last)
+	{
+		answers.push_back(ri->index);
+		++ri;
+	}
+
+	size_t curSize = answers.size();
+
+	if (ok)
+	while (ri != input.cend())
+	{
+		answers.push_back(it->index);
+		answers.push_back(ri->index);
+		++ri;
+
+		if (it == input.cbegin())
+			break;
+
+		--it;
+	}
+
+	if (it == input.cbegin() && ri == input.cend())
+		;
+	else if (it == input.cbegin())
+	{
+		for (size_t i = 0; ri != input.cend() && i < curSize; ++i)
+		{
+			answers.push_back(ri->index);
+			++ri;
+		}
+	}
+	else // if (ri == input.cend())
+	{
+		for (size_t i = 0; i < curSize - 1; ++i)
+		{
+			answers.push_back(it->index);
+
+			if (it == input.cbegin())
+				break;
+
+			--it;
+		}
+	}
+
+	return answers;
 }
 
 void _main()
@@ -153,62 +228,108 @@ void _main()
 
 #ifdef HOME
 	std::ifstream in("input.txt");
-	//std::ofstream out("output.txt");
+	std::ofstream out("output.txt");
 #define cin in
-//#define cout out
+#define cout out
 #endif
 
-	size_t t;
+	i64 k;
+	size_t n;
 
-	cin >> t;
+	cin >> n >> k;
 
-	for (size_t i = 0; i < t; ++i)
+	std::vector<Pair> input;
+	std::vector<i64> answers;
+
+	for (size_t i = 0; i < n; i++)
 	{
-		std::set<Tuple> vals;
-
-		vals.insert({ 1, 2, 1 });
-
-		i64 n;
-		cin >> n;
-		--n;
-		i64 temp = 1;
-		size_t iters = 1;
-
-		i64 col = 1;
-
-		while (temp < n)
-		{
-			auto fst = vals.cbegin();
-			auto fstVal = *fst;
-			i64 cost = 0;
-
-			if ((fstVal.cost) <= temp + 1)
-			{
-				cost = fstVal.cost;
-
-				if (fstVal.count + 1 >= pows.size())
-					cout << "of";
-
-				fstVal.cost = (pows[fstVal.count + 1] + 1) * fstVal.value;
-				++fstVal.count;
-				vals.erase(fst);
-				vals.insert(fstVal);
-			}
-			else
-			{
-				cost = temp + 1;
-				vals.insert({ temp + 1, (temp + 1) * 2, 1 });
-				++temp;
-			}
-
-			n -= cost;
-
-			++iters;
-		}
-
-		cout << iters << std::endl;
+		i64 t;
+		cin >> t;
+		input.push_back({ t, i + 1 });
 	}
 
+	std::sort(
+		input.begin(),
+		input.end()
+	);
+
+	Pair toFind{ k, 0 };
+
+	auto it = std::lower_bound(
+		input.cbegin(),
+		input.cend(),
+		toFind
+	);
+
+	if (it == input.cend())
+	{
+		bool ok = true;
+		--it;
+		auto last = it->value;
+
+		while (it->value == last)
+		{
+			answers.push_back(it->index);
+			
+			if (it == input.cbegin())
+			{
+				ok = false; break;
+			}
+
+			--it;
+		}
+
+		auto cnt = answers.size() - 1;
+		if(ok)
+		for (size_t i = 0; i < cnt; ++i)
+		{
+			answers.push_back(it->index);
+
+			if (it == input.cbegin())
+				break;
+
+			--it;
+		}
+	}
+	else if (it->value == k)
+	{
+		answers = count(input, it);
+	}
+	else
+	{
+		auto val = it->value - k;
+		auto le = it;
+
+		while (le != input.cbegin() && le->value == it->value)
+		{
+			--le;
+		}
+
+		if (le->value == it->value)
+			answers = count(input, it);
+		else if (k - le->value < val)
+			answers = count(input, le);
+		else if (k - le->value == val)
+		{
+			auto another = count(input, it);
+			answers = count(input, le);
+
+			if (another.size() > answers.size())
+				another.swap(answers);
+		}
+		else
+			answers = count(input, it);
+	}
+
+	std::sort(
+		answers.begin(),
+		answers.end()
+	);
+
+	cout << answers.size() << std::endl;
+
+	for (auto& a : answers)
+		cout << a << " ";
 
 #ifdef HOME
 	// system("pause");

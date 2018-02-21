@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <deque>
 #include <fstream>
@@ -17,10 +18,15 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 #include <queue>
+
+#include <thread>
+
+#include <clocale>
 #include <cmath>
 
 #ifdef HOME
@@ -35,22 +41,153 @@ void _main();
 int main(int argc, char **argv)
 {
 	std::ios_base::sync_with_stdio(false);
-	
-#ifdef HOME
-	
-	Tester tester;
 
-	tester.assertEq(
-		"abcd",
-		"1",
-		_main
-	);
+#ifdef HOME
+
+	std::setlocale(LC_ALL, "ru-RU");
+
+	Tester tester(_main);
+
+	tester
+		.eq(
+			R"(4
+0 0
+0 1
+1 0
+1 1
+6
+0 1
+1 0
+1 1
+1 2
+1 3
+2 2
+)",
+R"(2
+4)"
+)
+;
 
 #else
 	_main();
 #endif // HOME
 
+	//_main();
+
 	return 0;
+}
+
+using Pair = std::pair<int, int>;
+
+void dfs(std::map<Pair, short>& vertices, const Pair& start, std::vector<int>& cnts)
+{
+	auto fst = start;
+	auto snd = start;
+	auto trd = start;
+	auto frt = start;
+
+	--fst.first;
+	++snd.first;
+	--trd.second;
+	++frt.second;
+
+	std::vector<Pair> neighbours;
+
+	if (vertices.count(fst))
+		neighbours.push_back(fst);
+
+	if (vertices.count(snd))
+		neighbours.push_back(snd);
+
+	if (vertices.count(trd))
+		neighbours.push_back(trd);
+
+	if (vertices.count(frt))
+		neighbours.push_back(frt);
+
+	bool ok = true;
+
+	for (auto& a : neighbours)
+	{
+		if (vertices[a] == 1)
+			ok = false;
+	}
+
+	if (ok)
+	{
+		++cnts[1];
+		vertices[start] = 1;
+		goto ex;
+	}
+
+	ok = true;
+
+	for (auto& a : neighbours)
+	{
+		if (vertices[a] == 2)
+			ok = false;
+	}
+
+	if (ok)
+	{
+		++cnts[2];
+		vertices[start] = 2;
+		goto ex;
+	}
+
+	ok = true;
+
+	for (auto& a : neighbours)
+	{
+		if (vertices[a] == 3)
+			ok = false;
+	}
+
+	if (ok)
+	{
+		++cnts[3];
+		vertices[start] = 3;
+		goto ex;
+	}
+
+	ok = true;
+
+	for (auto& a : neighbours)
+	{
+		if (vertices[a] == 4)
+			ok = false;
+	}
+
+	if (ok)
+	{
+		++cnts[4];
+		vertices[start]  = 4;
+		goto ex;
+	}
+
+
+	ok = true;
+
+	for (auto& a : neighbours)
+	{
+		if (vertices[a] == 5)
+			ok = false;
+	}
+
+	if (ok)
+	{
+		++cnts[5];
+		vertices[start] = 5;
+		goto ex;
+	}
+
+	for (auto& a : neighbours)
+	{
+		if (vertices[a] == 0)
+			dfs(vertices, a, cnts);
+	}
+
+ex:;
 }
 
 void _main()
@@ -65,9 +202,31 @@ void _main()
 #define cout out
 #endif
 
-	cout << 2;
+	size_t n;
+
+	cout << std::fixed << std::setprecision(7);
+
+	while (cin >> n)
+	{
+		std::map<Pair, short> pairs;
+
+		for (size_t i = 0; i < n; ++i)
+		{
+			Pair p;
+			cin >> p.first >> p.second;
+			pairs[p] = 0;
+		}
+
+		std::vector<int> cnts(6, 0);
+
+		for (auto& a: pairs)
+			if (a.second == 0)
+				dfs(pairs, a.first, cnts);
+
+		cout << *std::max_element(cnts.cbegin(), cnts.cend()) << std::endl;
+	}
 
 #ifdef HOME
-	system("pause");
+	// system("pause");
 #endif
 }

@@ -21,6 +21,9 @@ Tester& Tester::eq(const std::string& test, const std::string& expected)
 		std::back_inserter(output)
 	);
 
+	if (output.back() == '\n')
+		output.pop_back();
+
 	// lab_po_3_204A
 	if (output == expected)
 	{
@@ -35,7 +38,7 @@ Tester& Tester::eq(const std::string& test, const std::string& expected)
 	}
 	else
 	{
-		printSep("", "Тест ", testCnt, ": ожидалось");
+		printSep("", "Тест ", testCnt, " (", duration, " мс)", ": ожидалось");
 		print(expected);
 		print("\tПолучено: ");
 
