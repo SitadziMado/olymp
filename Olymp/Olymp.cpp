@@ -81,39 +81,6 @@ Yes
 Yes
 No)"
 )
-.eq(
-	R"(15
-+ 1
-+ 2
-+ 4
-+ 8
-+ 16
-+ 32
--
-+ 2
--
--
--
-+ 8
--
--
-+ 32)",
-R"(No
-No
-No
-No
-No
-Yes
-Yes
-Yes
-Yes
-Yes
-No
-Yes
-Yes
-No
-Yes)"
-)
 ;
 
 #else
